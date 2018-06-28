@@ -28,7 +28,7 @@ node {
          * First, the incremental build number from Jenkins
          * Second, the 'latest' tag.
          * Pushing multiple tags is cheap, as all the layers are reused. */
-        docker.withRegistry('https://artifacts.ggn.in.guavus.com:4244', 'deployer') {
+        docker.withRegistry('https://artifacts.ggn.in.guavus.com:4244', 'c85bc188-6d34-4895-88a5-1d8e2db52d7d') {
             app.push("${env.BUILD_NUMBER}")
             app.push("latest")
         }
