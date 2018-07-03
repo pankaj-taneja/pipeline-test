@@ -4,6 +4,7 @@ buildscript {
 	}
 	repositories {
 		mavenCentral()
+              
 	}
 	dependencies {
 		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
@@ -32,6 +33,7 @@ repositories {
 	mavenCentral()
 }
 
+repositories { jcenter() }
 
 dependencies {
 	compile('org.springframework.boot:spring-boot-starter-web')
@@ -40,9 +42,11 @@ dependencies {
 	testCompile('org.springframework.boot:spring-boot-starter-test')
 	compile "org.springframework.data:spring-data-redis:1.8.0.RELEASE"
 	compile "redis.clients:jedis:2.9.0"
+        compile ("junit:junit:4.12")
 
 	testCompile("info.cukes:cucumber-java:1.2.4")
 	testCompile("info.cukes:cucumber-junit:1.2.4")
+        testCompile ("junit:junit:4.12")
 }
 
 jacocoTestCoverageVerification {
