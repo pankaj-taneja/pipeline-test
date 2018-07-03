@@ -1,36 +1,97 @@
-node {
-    def app
-
-    stage('Clone repository') {
-        /* Let's make sure we have the repository cloned to our workspace */
-
-        checkout scm
+pipeline {
+  agent any
+	
+  triggers {
+    pollSCM('* * * * *')
+  }
+	
+  stages {
+    stage("Compile") {
+      steps {
+        sh "./gradlew compileJava"
+      }
+    }
+	  
+    stage("Unit test") {
+      steps {
+        sh "./gradlew test"
+      }
+    }
+	
+    stage("Code coverage") {
+      steps {
+        sh "./gradlew jacocoTestReport"
+        publishHTML (target: [
+               reportDir: 'build/reports/jacoco/test/html',
+               reportFiles: 'index.html',
+               reportName: "JaCoCo Report" ])
+        sh "./gradlew jacocoTestCoverageVerification"
+      }
     }
 
-    stage('Build image') {
-        /* This builds the actual image; synonymous to
-         * docker build on the command line */
-
-        app = docker.build("getintodevops/hellonode")
+    stage("Static code analysis") {
+      steps {
+        sh "./gradlew checkstyleMain"
+        publishHTML (target: [
+               reportDir: 'build/reports/checkstyle/',
+               reportFiles: 'main.html',
+               reportName: "Checkstyle Report" ])
+      }
     }
 
-    stage('Test image') {
-        /* Ideally, we would run a test framework against our image.
-         * For this example, we're using a Volkswagen-type approach ;-) */
+    stage("Build") {
+      steps {
+        sh "./gradlew build"
+      }
+    }
 
-        app.inside {
-            sh 'echo "Tests passed"'
+    stage("Docker build") {
+      steps {
+        sh "docker build -t leszko/calculator:${BUILD_TIMESTAMP} ."
+      }
+    }
+
+    stage("Docker login") {
+      steps {
+        withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'leszko',
+                          usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
+          sh "docker login --username $USERNAME --password $PASSWORD"
         }
+      }
     }
 
-    stage('Push image') {
-        /* Finally, we'll push the image with two tags:
-         * First, the incremental build number from Jenkins
-         * Second, the 'latest' tag.
-         * Pushing multiple tags is cheap, as all the layers are reused. */
-        docker.withRegistry('https://artifacts.ggn.in.guavus.com:4244', 'c85bc188-6d34-4895-88a5-1d8e2db52d7d') {
-            app.push("${env.BUILD_NUMBER}")
-            app.push("latest")
-        }
+    stage("Docker push") {
+      steps {
+        sh "docker push leszko/calculator:${BUILD_TIMESTAMP}"
+      }
     }
+
+    stage("Deploy to staging") {
+      steps {
+        sh "ansible-playbook playbook.yml -i inventory/staging"
+        sleep 60
+      }
+    }
+
+    stage("Acceptance test") {
+      steps {
+	sh "./acceptance_test.sh 192.168.0.166"
+      }
+    }
+	  
+    // Performance test stages
+
+    stage("Release") {
+      steps {
+        sh "ansible-playbook playbook.yml -i inventory/production"
+        sleep 60
+      }
+    }
+
+    stage("Smoke test") {
+      steps {
+	sh "./smoke_test.sh 192.168.0.115"
+      }
+    }
+  }
 }
