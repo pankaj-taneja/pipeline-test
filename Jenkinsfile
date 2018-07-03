@@ -1,3 +1,4 @@
+
 pipeline {
   agent any
 	
@@ -11,7 +12,7 @@ pipeline {
         sh "./gradlew compileJava"
       }
     }
-	  
+/*	  
     stage("Unit test") {
       steps {
         sh "./gradlew test"
@@ -92,6 +93,6 @@ pipeline {
       steps {
 	sh "./smoke_test.sh 192.168.0.115"
       }
-    }
+    } */
   }
 }
