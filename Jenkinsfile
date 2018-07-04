@@ -78,6 +78,7 @@ pipeline {
           echo ""
           echo "BRANCH NAME: ${BRANCH_NAME}"
           echo "GIT_TAG: ${GIT_TAG}"
+      }
     }
 /*
     stage("Build") {
