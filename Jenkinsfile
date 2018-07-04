@@ -35,7 +35,7 @@ pipeline {
                reportName: "Checkstyle Report" ])
       }
     }
-
+/*
     stage('Get Git Tag') {
       steps {
         script {
@@ -43,12 +43,12 @@ pipeline {
         }
       }
     }
-  
+*/  
     stage('Compute Docker Tag') {
       steps {
         script {
           buildType = BRANCH_NAME.split('/')[0] 
-          gitTagName = GIT_TAG
+          gitTagName = "v1.0.0"
 
           if (buildType in ['develop']) {
               // develop branch will keeps develop as tag name
