@@ -74,14 +74,14 @@ pipeline {
           }
           echo "Computed Docker Tag"
           echo ""
-          echo "Doker tag: ${dockerTag}"
+          echo "Docker tag: ${dockerTag}"
           echo ""
           echo "BRANCH NAME: ${BRANCH_NAME}"
           // echo "GIT_TAG: ${GIT_TAG}"
         }
       }
     }
-/*
+
     stage("Build") {
       steps {
         sh "./gradlew build"
@@ -90,25 +90,16 @@ pipeline {
 
     stage("Docker build") {
       steps {
-        sh "docker build -t leszko/calculator:${BUILD_TIMESTAMP} ."
-      }
-    }
-
-    stage("Docker login") {
-      steps {
-        withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'leszko',
-                          usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
-          sh "docker login --username $USERNAME --password $PASSWORD"
-        }
+        sh "docker build -t artifacts.ggn.in.guavus.com:4244/calculator:${dockerTag}-${gitTagName}-${BUILD_NUMBER} ."
       }
     }
 
     stage("Docker push") {
       steps {
-        sh "docker push leszko/calculator:${BUILD_TIMESTAMP}"
+        sh "docker push artifacts.ggn.in.guavus.com:4244/calculator:${dockerTag}-${gitTagName}-${BUILD_NUMBER}"
       }
     }
-
+/*
     stage("Deploy to staging") {
       steps {
         sh "ansible-playbook playbook.yml -i inventory/staging"
