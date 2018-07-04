@@ -47,8 +47,8 @@ pipeline {
     stage('Compute Docker Tag') {
       steps {
         script {
-          buildType = ( env.BRANCH_NAME.split('/')[0] )
           echo "BRANCH NAME: ${BRANCH_NAME}"
+          buildType = BRANCH_NAME.split('/')[0] 
           echo "buildtype:${buildType}"
           gitTagName = GIT_TAG
 
