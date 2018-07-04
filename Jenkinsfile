@@ -48,6 +48,8 @@ pipeline {
       steps {
         script {
           buildType = ( env.BRANCH_NAME.split('/')[0] )
+          echo "BRANCH NAME: ${BRANCH_NAME}"
+          echo "buildtype:${buildType}"
           gitTagName = GIT_TAG
 
           if (buildType in ['develop']) {
