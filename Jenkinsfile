@@ -48,6 +48,11 @@ pipeline {
       steps {
         script {
           echo "BRANCH NAME: ${env.BRANCH_NAME}"
+          
+        }
+      }
+    }    
+/*
           buildType = BRANCH_NAME.split('/')[0] 
           echo "buildtype:${buildType}"
           gitTagName = GIT_TAG
@@ -83,7 +88,7 @@ pipeline {
         }
       }
     }
-/*
+
     stage("Build") {
       steps {
         sh "./gradlew build"
