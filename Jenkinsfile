@@ -1,20 +1,20 @@
 
 pipeline {
   agent any
-	
+
   stages {
     stage("Compile") {
       steps {
         sh "./gradlew compileJava"
       }
     }
-	  
+
     stage("Unit test") {
       steps {
         sh "./gradlew test"
       }
     }
-	
+
     stage("Code coverage") {
       steps {
         sh "./gradlew jacocoTestReport"
@@ -33,6 +33,7 @@ pipeline {
                reportDir: 'build/reports/checkstyle/',
                reportFiles: 'main.html',
                reportName: "Checkstyle Report" ])
+
       }
     }
 /*
@@ -43,11 +44,12 @@ pipeline {
         }
       }
     }
-*/  
+*/
     stage('Compute Docker Tag') {
       steps {
         script {
-          buildType = BRANCH_NAME.split('/')[0] 
+          buildType = BRANCH_NAME.split('/')[0]
+          echo "BUILD_TYPE: ${buildType}"
           gitTagName = "v1.0.0"
 
           if (buildType in ['develop']) {
@@ -112,7 +114,7 @@ pipeline {
 	sh "./acceptance_test.sh 192.168.0.166"
       }
     }
-	  
+
     // Performance test stages
 
     stage("Release") {
