@@ -47,7 +47,7 @@ pipeline {
     stage('Compute Docker Tag') {
       steps {
         script {
-          buildType = ${env.BRANCH_NAME}.split('/')[0]
+          buildType = $(env.BRANCH_NAME).split('/')[0]
           gitTagName = GIT_TAG
 
           if (buildType in ['develop']) {
