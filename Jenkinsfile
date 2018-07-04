@@ -25,7 +25,7 @@ pipeline {
         sh "./gradlew jacocoTestCoverageVerification"
       }
     }
-/*
+
     stage("Static code analysis") {
       steps {
         sh "./gradlew checkstyleMain"
@@ -35,7 +35,7 @@ pipeline {
                reportName: "Checkstyle Report" ])
       }
     }
-
+/*
     stage("Build") {
       steps {
         sh "./gradlew build"
