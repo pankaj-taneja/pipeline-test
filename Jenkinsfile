@@ -77,7 +77,7 @@ pipeline {
           echo "Doker tag: ${dockerTag}"
           echo ""
           echo "BRANCH NAME: ${BRANCH_NAME}"
-          echo "GIT_TAG: ${GIT_TAG}"
+          // echo "GIT_TAG: ${GIT_TAG}"
         }
       }
     }
