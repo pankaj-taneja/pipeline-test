@@ -77,6 +77,10 @@ pipeline {
         echo "Run Commmands to trigger build"
       }
     }
+    stage('print vars') {
+      echo "buildType: env.buildType"
+      echo "GIT_BRANCH: env.GIT_BRANCH"
+    }
     stage('Create Docker image') {
       steps {
         script {
