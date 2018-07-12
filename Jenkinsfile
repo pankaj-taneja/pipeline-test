@@ -4,10 +4,10 @@ pipeline {
   agent any
 	environment {
     // Define global environment variables in this section
-    GIT_BRANCH = sh(returnStdout: true, script: 'git rev-parse --abbrev-ref HEAD').trim()
+    // GIT_BRANCH = sh(returnStdout: true, script: 'git rev-parse --abbrev-ref HEAD').trim()
     buildNum = currentBuild.getNumber()
-    buildType = GIT_BRANCH.split('/').first()
-    branchVersion = GIT_BRANCH.split('/').last()
+    buildType = BRANCH_NAME.split('/').first()
+    branchVersion = BRANCH_NAME.split('/').last()
     buildVersion = '1.0.0'
   }
   stages {
@@ -80,7 +80,7 @@ pipeline {
     stage("print vars") {
       steps {
         echo "buildType: ${buildType}"
-        echo "GIT_BRANCH: ${GIT_BRANCH}"  
+        echo "BRANCH_NAME: ${BRANCH_NAME}"
       }
     }
     stage('Create Docker image') {
@@ -88,7 +88,7 @@ pipeline {
         script {
           if (buildType in ['feature','fix']) {
             // docker image name for feature build - component:<JIRA-ID>
-            dockerTag = ( env.GIT_BRANCH.split('/')[1] =~ /.+-\d+/ )[0]
+            dockerTag = ( env.BRANCH_NAME.split('/')[1] =~ /.+-\d+/ )[0]
             echo "Run Commmand to trigger docker build - module-A:${dockerTag}"
           }
           else if (buildType ==~ /PR-.*/ ){
@@ -105,7 +105,7 @@ pipeline {
             // BRANCH_NAME : 'release/X.Y.Z' or 'release/X.Y' or 'release/X'
             //   This is a release - either major, feature, fix
             //   Recomended to always use X.Y.Z to make sure we build properly
-            dockerTag = env.GIT_BRANCH.split('/')[1]
+            dockerTag = env.BRANCH_NAME.split('/')[1]
             echo "Run Commmand to trigger docker build - module-A:${dockerTag}"
           }
         }
