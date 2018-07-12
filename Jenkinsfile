@@ -80,7 +80,7 @@ pipeline {
     stage('Compute Docker tag') {
       steps {
         script {
-          if (buildType in ['feature']) {
+          if (buildType in ['feature','fix']) {
             // docker image name for feature build - component:<JIRA-ID>
             dockerTag = ( env.GIT_BRANCH.split('/')[1] =~ /.+-\d+/ )[0]
           } else if (buildType ==~ /PR-.*/ ){
@@ -95,12 +95,6 @@ pipeline {
               //   Recomended to always use X.Y.Z to make sure we build properly
               dockerTag = env.GIT_BRANCH.split('/')[1]
           }
-          echo "Computed Docker Tag"
-          echo ""
-          echo "Docker tag: ${dockerTag}"
-          echo ""
-          echo "BRANCH NAME: ${GIT_BRANCH}"
-          // echo "GIT_TAG: ${GIT_TAG}"
         }
       }
     }
