@@ -77,34 +77,41 @@ pipeline {
         echo "Run Commmands to trigger build"
       }
     }
-    stage('Compute Docker tag') {
+    stage('Create Docker image') {
       steps {
         script {
           if (buildType in ['feature','fix']) {
             // docker image name for feature build - component:<JIRA-ID>
-            dockerTag = ( env.GIT_BRANCH.split('/')[1] =~ /.+-\d+/ )[0]
-          } else if (buildType ==~ /PR-.*/ ){
+            dockerTag = "(env.GIT_BRANCH.split('/')[1] =~ /.+-\d+/ )[0]"
+            echo "Run Commmand to trigger docker build - module-A:${dockerTag}"
+          }
+          else if (buildType ==~ /PR-.*/ ){
             //   This is a pull request
-            dockerTag = branchVersion
-          } else if (buildType in ['master']) {
-              // master branch
-              dockerTag = (env.buildVersion-env.buildNum-dev)
-          } else if ( buildType in ['release'] ){
-              // BRANCH_NAME : 'release/X.Y.Z' or 'release/X.Y' or 'release/X'
-              //   This is a release - either major, feature, fix
-              //   Recomended to always use X.Y.Z to make sure we build properly
-              dockerTag = env.GIT_BRANCH.split('/')[1]
+            dockerTag = env.branchVersion
+            echo "Run Commmand to trigger docker build - module-A:${dockerTag}"
+          }
+          else if (buildType in ['master']) {
+            // master branch
+            dockerTag = "(env.buildVersion-env.buildNum-dev)"
+            echo "Run Commmand to trigger docker build - module-A:${dockerTag}"
+          }
+          else if ( buildType in ['release'] ){
+            // BRANCH_NAME : 'release/X.Y.Z' or 'release/X.Y' or 'release/X'
+            //   This is a release - either major, feature, fix
+            //   Recomended to always use X.Y.Z to make sure we build properly
+            dockerTag = env.GIT_BRANCH.split('/')[1]
+            echo "Run Commmand to trigger docker build - module-A:${dockerTag}"
           }
         }
       }
     }
 
-    stage("Docker build") {
+/*    stage("Docker build") {
       steps {
         // Create docker build with name <module name>:dockerTag
         echo "Run Commmand to trigger docker build - module-A:${dockerTag}"
       }
-    }
+    }*/
 
     stage("Docker push") {
       steps {
