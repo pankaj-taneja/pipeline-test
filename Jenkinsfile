@@ -79,8 +79,8 @@ pipeline {
     }
     stage("print vars") {
       steps {
-        echo "buildType: env.buildType"
-        echo "GIT_BRANCH: env.GIT_BRANCH"  
+        echo "buildType: ${buildType}"
+        echo "GIT_BRANCH: ${GIT_BRANCH}"  
       }
     }
     stage('Create Docker image') {
