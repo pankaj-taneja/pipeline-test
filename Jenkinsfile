@@ -93,7 +93,7 @@ pipeline {
           }
           else if (buildType ==~ /PR-.*/ ){
             //   This is a pull request
-            dockerTag = (env.BRANCH_NAME.split('/')[1] =~ /.+-\d+/ )[0]-pr
+            dockerTag = buildType
             echo "Run Commmand to trigger docker build - module-A:${dockerTag}"
           }
           else if (buildType in ['master']) {
