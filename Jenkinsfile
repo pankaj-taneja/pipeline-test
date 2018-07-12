@@ -82,7 +82,7 @@ pipeline {
         script {
           if (buildType in ['feature','fix']) {
             // docker image name for feature build - component:<JIRA-ID>
-            dockerTag = "(env.GIT_BRANCH.split('/')[1] =~ /.+-\d+/ )[0]"
+            dockerTag = env.GIT_BRANCH.split('/')[1] =~ /.+-\d+/ )[0]
             echo "Run Commmand to trigger docker build - module-A:${dockerTag}"
           }
           else if (buildType ==~ /PR-.*/ ){
@@ -92,7 +92,7 @@ pipeline {
           }
           else if (buildType in ['master']) {
             // master branch
-            dockerTag = "(env.buildVersion-env.buildNum-dev)"
+            dockerTag = env.buildVersion-env.buildNum-dev
             echo "Run Commmand to trigger docker build - module-A:${dockerTag}"
           }
           else if ( buildType in ['release'] ){
