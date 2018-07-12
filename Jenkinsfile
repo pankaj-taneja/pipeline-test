@@ -83,7 +83,7 @@ pipeline {
         echo "BRANCH_NAME: ${BRANCH_NAME}"
       }
     }
-    stage('Create Docker image') {
+    stage('Create Docker Image') {
       steps {
         script {
           if (buildType in ['feature','fix']) {
@@ -93,7 +93,7 @@ pipeline {
           }
           else if (buildType ==~ /PR-.*/ ){
             //   This is a pull request
-            dockerTag = env.branchVersion
+            dockerTag = (env.BRANCH_NAME.split('/')[1] =~ /.+-\d+/ )[0]-pr
             echo "Run Commmand to trigger docker build - module-A:${dockerTag}"
           }
           else if (buildType in ['master']) {
