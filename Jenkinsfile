@@ -1,104 +1,120 @@
+#!/usr/bin/env groovy
 
 pipeline {
   agent any
-
+	environment {
+    // Define global environment variables in this section
+    GIT_BRANCH = sh(returnStdout: true, script: 'git rev-parse --abbrev-ref HEAD').trim()
+    buildNum = currentBuild.getNumber()
+    buildType = GIT_BRANCH.split('/').first()
+    branchVersion = GIT_BRANCH.split('/').last()
+    buildVersion = '1.0.0'
+  }
   stages {
     stage("Compile") {
-      steps {
-        sh "./gradlew compileJava"
-      }
-    }
-
-    stage("Unit test") {
-      steps {
-        sh "./gradlew test"
-      }
-    }
-
-    stage("Code coverage") {
-      steps {
-        sh "./gradlew jacocoTestReport"
-        publishHTML (target: [
-               reportDir: 'build/reports/jacoco/test/html',
-               reportFiles: 'index.html',
-               reportName: "JaCoCo Report" ])
-        sh "./gradlew jacocoTestCoverageVerification"
-      }
-    }
-
-    stage("Static code analysis") {
-      steps {
-        sh "./gradlew checkstyleMain"
-        publishHTML (target: [
-               reportDir: 'build/reports/checkstyle/',
-               reportFiles: 'main.html',
-               reportName: "Checkstyle Report" ])
-
-      }
-    }
-/*
-    stage('Get Git Tag') {
-      steps {
-        script {
-          GIT_TAG = sh  returnStdout: true, script: '[[ $( git describe --tags $(git rev-parse HEAD) ) =~ .+-[0-9]+-g[0-9A-Fa-f]{6,}$ ]] && echo "" || git describe --tags $(git rev-parse HEAD)'
+      when {
+        expression {
+          // Run only for buildTypes feature or fix or pullRequest
+          buildType ==~ /feature.*/ || /PR-.*/ || /fix.*/
         }
       }
+      steps {
+        sh (echo "Run Commmands to compile code")
+      }
     }
-*/
-    stage('Compute Docker Tag') {
+    stage("Unit test") {
+      when {
+        expression {
+          // Run only for buildTypes feature or fix or pullRequest
+          buildType ==~ /feature.*/ || /PR-.*/ || /fix.*/
+        }
+      }
+      steps {
+        sh (echo "Run Commmands to execute unit test")
+      }
+    }
+    stage("Code coverage") {
+      when {
+        expression {
+          // Run only for buildTypes feature or fix or pullRequest
+          buildType ==~ /feature.*/ || /PR-.*/ || /fix.*/
+        }
+      }
+      steps {
+        sh (echo "Run Commmands to execute code coverage test")
+      }
+    }
+    stage("Code Quality") {
+      when {
+        expression {
+          // Run only for buildTypes feature or fix or pullRequest
+          buildType ==~ /feature.*/ || /PR-.*/ || /fix.*/
+        }
+      }
+      steps {
+        sh (echo "Run Commmands to execute code quality test")
+      }
+    }
+    stage("Static code analysis") {
+      when {
+        expression {
+          // Run only for buildTypes feature or fix or pullRequest
+          buildType ==~ /feature.*/ || /PR-.*/ || /fix.*/
+        }
+      }
+      steps {
+        sh (echo "Run Commmands to execute static code analysis test")
+      }
+    }
+    stage("Build") {
+      when {
+        expression {
+          // Run only for buildTypes feature or fix or pullRequest
+          buildType ==~ /feature.*/ || /PR-.*/ || /fix.*/
+        }
+      }
+      steps {
+        sh (echo "Run Commmands to trigger build")
+      }
+    }
+    stage('Compute Docker tag') {
       steps {
         script {
-          buildType = BRANCH_NAME.split('/')[0]
-          echo "BUILD_TYPE: ${buildType}"
-          gitTagName = "v1.0.0"
-
-          if (buildType in ['develop']) {
-              // develop branch will keeps develop as tag name
-              // Should we consider latest?
-              dockerTag = "latest"
+          if (buildType in ['feature']) {
+            // docker image name for feature build - component:<JIRA-ID>
+            dockerTag = ( env.GIT_BRANCH.split('/')[1] =~ /.+-\d+/ )[0]
+          } else if (buildType ==~ /PR-.*/ ){
+            //   This is a pull request
+            dockerTag = branchVersion
           } else if (buildType in ['master']) {
-              // Build master branch as tag. Tag must be the version number.
-              // Tag must be present.
-              dockerTag = gitTagName
-          } else if ( buildType ==~ /PR-.*/ ){
-              //   This is a pull request : do everything except push to repo
-              dockerTag = buildType
-              pullRequest = true
+              // master branch
+              dockerTag = (env.buildVersion-env.buildNum-dev)
           } else if ( buildType in ['release'] ){
               // BRANCH_NAME : 'release/X.Y.Z' or 'release/X.Y' or 'release/X'
               //   This is a release - either major, feature, fix
               //   Recomended to always use X.Y.Z to make sure we build properly
-              version = ( env.BRANCH_NAME.split('/')[1] )
-              dockerTag = "${version}-rc"
-          } else {
-              // */JIRA-###-Description -> JIRA-###
-              dockerTag = ( env.BRANCH_NAME.split('/')[1] =~ /.+-\d+/ )[0]
+              dockerTag = env.GIT_BRANCH.split('/')[1]
           }
           echo "Computed Docker Tag"
           echo ""
           echo "Docker tag: ${dockerTag}"
           echo ""
-          echo "BRANCH NAME: ${BRANCH_NAME}"
+          echo "BRANCH NAME: ${GIT_BRANCH}"
           // echo "GIT_TAG: ${GIT_TAG}"
         }
       }
     }
 
-    stage("Build") {
-      steps {
-        sh "./gradlew build"
-      }
-    }
-
     stage("Docker build") {
       steps {
-        sh "docker build -t artifacts.ggn.in.guavus.com:4244/calculator:${dockerTag}-${gitTagName}-${BUILD_NUMBER} ."
+        // Create docker build with name <module name>:dockerTag
+        sh (echo "Run Commmand to trigger docker build - module-A:${dockerTag}")
       }
     }
 
     stage("Docker push") {
       steps {
-        sh "docker push artifacts.ggn.in.guavus.com:4244/calculator:${dockerTag}-${gitTagName}-${BUILD_NUMBER}"
+        sh (echo "Run Commmand to push docker image in artifactory")
       }
     }
 /*
