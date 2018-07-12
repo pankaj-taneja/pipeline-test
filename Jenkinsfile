@@ -19,7 +19,7 @@ pipeline {
         }
       }
       steps {
-        sh (echo "Run Commmands to compile code")
+        echo "Run Commmands to compile code"
       }
     }
     stage("Unit test") {
@@ -30,7 +30,7 @@ pipeline {
         }
       }
       steps {
-        sh (echo "Run Commmands to execute unit test")
+        echo "Run Commmands to execute unit test"
       }
     }
     stage("Code coverage") {
@@ -41,7 +41,7 @@ pipeline {
         }
       }
       steps {
-        sh (echo "Run Commmands to execute code coverage test")
+        echo "Run Commmands to execute code coverage test"
       }
     }
     stage("Code Quality") {
@@ -52,7 +52,7 @@ pipeline {
         }
       }
       steps {
-        sh (echo "Run Commmands to execute code quality test")
+        echo "Run Commmands to execute code quality test"
       }
     }
     stage("Static code analysis") {
@@ -63,7 +63,7 @@ pipeline {
         }
       }
       steps {
-        sh (echo "Run Commmands to execute static code analysis test")
+        echo "Run Commmands to execute static code analysis test"
       }
     }
     stage("Build") {
@@ -74,7 +74,7 @@ pipeline {
         }
       }
       steps {
-        sh (echo "Run Commmands to trigger build")
+        echo "Run Commmands to trigger build"
       }
     }
     stage('Compute Docker tag') {
@@ -108,13 +108,13 @@ pipeline {
     stage("Docker build") {
       steps {
         // Create docker build with name <module name>:dockerTag
-        sh (echo "Run Commmand to trigger docker build - module-A:${dockerTag}")
+        echo "Run Commmand to trigger docker build - module-A:${dockerTag}"
       }
     }
 
     stage("Docker push") {
       steps {
-        sh (echo "Run Commmand to push docker image in artifactory")
+        echo "Run Commmand to push docker image in artifactory"
       }
     }
 /*
