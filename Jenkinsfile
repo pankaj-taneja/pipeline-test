@@ -52,7 +52,7 @@ pipeline {
             env.dockerTag = buildType
           } else if (buildType in ['master']) {
             // master branch
-            env.dockerTag = ${env.buildVersion}-${env.buildNum}-dev
+            env.dockerTag = "${env.buildVersion}-${env.buildNum}-dev"
           } else if ( buildType in ['release'] ){
             // BRANCH_NAME : 'release/X.Y.Z' or 'release/X.Y' or 'release/X'
             //   This is a release - either major, feature, fix
