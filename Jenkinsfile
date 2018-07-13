@@ -122,7 +122,7 @@ pipeline {
       }
       steps {
         // Stubs should be used to perform functional testing
-        echo "Deploy the Artifact"
+        echo "Deploy the Artifact on ephemeral environment"
         echo "Trigger test run to verify code changes"
       }
     }
@@ -136,7 +136,7 @@ pipeline {
       }
       steps {
         // supporting components have fixed versions
-        echo "Deploy the Artifact"
+        echo "Deploy the Artifact on dev setup"
         echo "Trigger integration test run with fixed versions"
       }
     }
@@ -165,7 +165,7 @@ pipeline {
         }
       }
       steps {
-        echo "Deploy the Artifact"
+        echo "Deploy the Artifact on QA setup"
         echo "Trigger integration test run with latest versions"
       }
     }
@@ -196,7 +196,7 @@ pipeline {
       }
       steps {
         // supporting components have fixed versions
-        echo "Deploy the Artifact"
+        echo "Deploy the Artifact on staging equivalent setup"
         echo "Trigger integration test run with latest stable versions"
       }
     }
