@@ -116,6 +116,7 @@ pipeline {
           // Run only for buildTypes master or Release
           buildType in ['master','release']
         }
+      }
       steps {
         // supporting components have fixed versions
         echo "Deploy the Artifact"
@@ -130,6 +131,7 @@ pipeline {
           // Run only for buildTypes master or Release
           buildType in ['master','release']
         }
+      }
       steps {
         // supporting components have fixed versions
         echo "Deploy the Artifact"
@@ -144,6 +146,7 @@ pipeline {
           // Run only for buildTypes master or Release
           buildType in ['master','release']
         }
+      }
       steps {
         // supporting components have fixed versions
         echo "Deploy the Artifact"
@@ -151,6 +154,5 @@ pipeline {
         echo "ReTag the artifact to module-A:<version>-<build number>-qa"
       }
     }
-
   }
 }
