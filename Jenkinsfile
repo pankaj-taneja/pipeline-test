@@ -12,21 +12,17 @@ pipeline {
     if (buildType in ['feature','fix']) {
       // docker image name for feature build - component:<JIRA-ID>
       dockerTag = ( env.BRANCH_NAME.split('/')[1] =~ /.+-\d+/ )[0]
-      echo "Run Commmand to trigger docker build - module-A:${dockerTag}"
     } else if (buildType ==~ /PR-.*/ ){
       //   This is a pull request
       dockerTag = buildType
-      echo "Run Commmand to trigger docker build - module-A:${dockerTag}"
     } else if (buildType in ['master']) {
       // master branch
       dockerTag = env.buildVersion-env.buildNum-dev
-      echo "Run Commmand to trigger docker build - module-A:${dockerTag}"
     } else if ( buildType in ['release'] ){
       // BRANCH_NAME : 'release/X.Y.Z' or 'release/X.Y' or 'release/X'
       //   This is a release - either major, feature, fix
       //   Recomended to always use X.Y.Z to make sure we build properly
       dockerTag = env.BRANCH_NAME.split('/')[1]
-      echo "Run Commmand to trigger docker build - module-A:${dockerTag}"
       }
   }
   stages {
@@ -104,30 +100,7 @@ pipeline {
     }
     stage('Create Docker Image') {
       steps {
-        script {
-          if (buildType in ['feature','fix']) {
-            // docker image name for feature build - component:<JIRA-ID>
-            dockerTag = ( env.BRANCH_NAME.split('/')[1] =~ /.+-\d+/ )[0]
-            echo "Run Commmand to trigger docker build - module-A:${dockerTag}"
-          }
-          else if (buildType ==~ /PR-.*/ ){
-            //   This is a pull request
-            dockerTag = buildType
-            echo "Run Commmand to trigger docker build - module-A:${dockerTag}"
-          }
-          else if (buildType in ['master']) {
-            // master branch
-            dockerTag = env.buildVersion-env.buildNum-dev
-            echo "Run Commmand to trigger docker build - module-A:${dockerTag}"
-          }
-          else if ( buildType in ['release'] ){
-            // BRANCH_NAME : 'release/X.Y.Z' or 'release/X.Y' or 'release/X'
-            //   This is a release - either major, feature, fix
-            //   Recomended to always use X.Y.Z to make sure we build properly
-            dockerTag = env.BRANCH_NAME.split('/')[1]
-            echo "Run Commmand to trigger docker build - module-A:${dockerTag}"
-          }
-        }
+        echo "Run Commmand to trigger docker build - module-A:${dockerTag}"
       }
     }
 
@@ -151,25 +124,33 @@ pipeline {
       }
     }
 
-    stage("Acceptance test") {
+    stage("Deploy and test on the QA environment") {
+      when {
+        expression {
+          // Run only for buildTypes master or Release
+          buildType in ['master','release']
+        }
       steps {
-	sh "./acceptance_test.sh 192.168.0.166"
+        // supporting components have fixed versions
+        echo "Deploy the Artifact"
+        echo "Trigger test run to verify integration testing"
+        echo "ReTag the artifact to module-A:<version>-<build number>-qa"
       }
     }
 
-    // Performance test stages
-
-    stage("Release") {
+    stage("Deploy and test on the Pre-Prod environment") {
+      when {
+        expression {
+          // Run only for buildTypes master or Release
+          buildType in ['master','release']
+        }
       steps {
-        sh "ansible-playbook playbook.yml -i inventory/production"
-        sleep 60
+        // supporting components have fixed versions
+        echo "Deploy the Artifact"
+        echo "Trigger test run to verify Acceptance testing"
+        echo "ReTag the artifact to module-A:<version>-<build number>-qa"
       }
     }
 
-    stage("Smoke test") {
-      steps {
-	sh "./smoke_test.sh 192.168.0.115"
-      }
-    } */
   }
 }
