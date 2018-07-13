@@ -146,6 +146,20 @@ pipeline {
       }
     }
 
+    stage("Deploy and test on the feature/fix ephemeral environment") {
+      when {
+        expression {
+          // Run only for buildTypes master or Release
+          buildType ==~ /feature.*/ || /PR-.*/ || /fix.*/
+        }
+      }
+      steps {
+        // supporting components have fixed versions
+        echo "Deploy the Artifact"
+        echo "Trigger test run to verify code changes"
+      }
+    }
+
     stage("Deploy and test on the dev environment") {
       when {
         expression {
