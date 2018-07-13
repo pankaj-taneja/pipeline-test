@@ -46,6 +46,7 @@ pipeline {
     // Define global environment variables in this section
     buildNum = currentBuild.getNumber()
     buildType = BRANCH_NAME.split('/').first()
+    branchVersion = BRANCH_NAME.split('/').last()
     buildVersion = '1.0.0'
   }
   stages {
