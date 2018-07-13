@@ -32,7 +32,7 @@ pipeline {
         }
       }
     }
-  }    
+  }
     stage("Compile") {
       when {
         expression {
@@ -161,5 +161,4 @@ pipeline {
         echo "ReTag the artifact to module-A:<version>-<build number>-qa"
       }
     }
-  }
 }
