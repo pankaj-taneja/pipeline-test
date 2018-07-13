@@ -117,7 +117,7 @@ pipeline {
     stage("Deploy on feature/fix/PR ephemeral test environments") {
       when {
         expression {
-          env.buildType ==~ /feature.*/ || /PR-.*/ || /fix.*/
+          env.buildType ==~ /(feature|PR-.*|fix)/
         }
       }
       steps {
