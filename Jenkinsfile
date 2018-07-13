@@ -13,21 +13,31 @@ release/X.Y.Z
 
 This pipeline also implements stages for pull requests testing
 hence it is strongly recommended to follow pull request practices.
+Which is: Nothing can be merged into master or release branch without
+creating a pull request.
 
-Pipeline follows following Artifact Promotion strategy which in
-this case is a docker tag:
-Branch Name - feature/JIRA-ID-Description or fix/JIRA-ID-Description
-    dockerTag = JIRA-ID (From branch name)
-Branch Name - PR-ID
-    dockerTag = PR-ID (From PR name)
-Branch Name - master (From branch name)
-    dockerTag = <module vesion>-<currentBuild number>-dev
-After dev test -
+Pipeline follows following Artifact versioning strategy which in
+this case is a docker tag promotion:
+If Branch Name is feature/JIRA-ID-Description or fix/JIRA-ID-Description
+  then, dockerTag = JIRA-ID (From branch name, ephemeral Artifact)
+If Branch Name is PR-ID
+  then, dockerTag = PR-ID (From PR name, ephemeral Artifact)
+If Branch Name is master or release,
+  then, dockerTag = <module vesion>-<currentBuild number>-dev
+After dev test, dev tag prmotes to qa, such as:
     dockerTag = <module vesion>-<currentBuild number>-qa
-After QA test -
+After QA test, qa tag promotes to rc, such as:
     dockerTag = <module vesion>-<currentBuild number>-rc
-After Acceptance test -
+After Acceptance test, rc tag prmotes to prod -
     dockerTag = <module vesion>-<currentBuild number>-prod
+
+* Ephemeral artifacts created with feature or fix Branches
+ and with pull should get deleted after closure of the
+ branch/PR.
+* Note that docker tags promotion on master or release branches
+does not create separate artifacts but a different tag to
+the same docker image which should be kept until the image is
+in use.
 */
 
 pipeline {
@@ -43,20 +53,18 @@ pipeline {
       steps {
         script {
           if (buildType in ['feature','fix']) {
-            // docker image name for feature build - component:<JIRA-ID>
+            // docker tag for a feature or fix branch
             env.dockerTag = ( env.BRANCH_NAME.split('/')[1] =~ /.+-\d+/ )[0]
           } else if (buildType ==~ /PR-.*/ ){
-            //   This is a pull request
+            // docker tag for a pull request
             env.dockerTag = buildType
           } else if (buildType in ['master']) {
-            // master branch
+            // docker tag for a master branch
             env.dockerTagVersion = "${env.buildVersion}-${env.buildNum}"
             env.dockerTagStage = "dev"
             env.dockerTag = "${env.dockerTagVersion}-${env.dockerTagStage}"
           } else if ( buildType in ['release'] ){
-            // BRANCH_NAME : 'release/X.Y.Z' or 'release/X.Y' or 'release/X'
-            //   This is a release - either major, feature, fix
-            //   Recomended to always use X.Y.Z to make sure we build properly
+            // docker tag for a release branch
             env.dockerTagVersion = "${env.branchVersion}-${env.buildNum}"
             env.dockerTagStage = "dev"
             env.dockerTag = "${env.dockerTagVersion}-${env.dockerTagStage}"
@@ -100,20 +108,20 @@ pipeline {
       }
     }
 
-    stage("Docker push") {
+    stage("Push docker images in artifactory") {
       steps {
         echo "Run Commmand to push docker image in artifactory"
       }
     }
 
-    stage("Deploy and test on the feature/fix ephemeral environment with Stubs") {
+    stage("Deploy on feature/fix/PR ephemeral test environments") {
       when {
         expression {
           buildType ==~ /feature.*/ || /PR-.*/ || /fix.*/
         }
       }
       steps {
-        // supporting components have fixed versions
+        // Stubs should be used to perform functional testing
         echo "Deploy the Artifact"
         echo "Trigger test run to verify code changes"
       }
@@ -129,7 +137,7 @@ pipeline {
       steps {
         // supporting components have fixed versions
         echo "Deploy the Artifact"
-        echo "Trigger test run to verify integration"
+        echo "Trigger integration test run with fixed versions"
       }
     }
 
@@ -145,8 +153,7 @@ pipeline {
         dockerTag = "${env.dockerTagVersion}-${dockerTagStage}"
       }
       steps {
-        // supporting components have fixed versions
-        echo "Promote Artifact name to module-A:${dockerTag}"
+        echo "Promote Artifact name to module-A:${dockerTag} in artifactory"
       }
     }
 
@@ -158,9 +165,8 @@ pipeline {
         }
       }
       steps {
-        // supporting components have fixed versions
         echo "Deploy the Artifact"
-        echo "Trigger test run to verify integration testing"
+        echo "Trigger integration test run with latest versions"
       }
     }
 
@@ -191,7 +197,7 @@ pipeline {
       steps {
         // supporting components have fixed versions
         echo "Deploy the Artifact"
-        echo "Trigger test run to verify Acceptance testing"
+        echo "Trigger integration test run with latest stable versions"
       }
     }
 
