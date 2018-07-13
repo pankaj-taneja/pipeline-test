@@ -1,131 +1,244 @@
+#!/usr/bin/env groovy
+
+/*
+This is a sample Jenkinsfile to demonstrate the list of stages
+that should be implemented for continuous integration and continuous
+deployment of a dockerized application.
+This pipeline expects following branch names in GitHub repository
+that has to be followed:
+master
+feature/JIRA-ID-Description
+fix/JIRA-ID-Description
+master
+release/X.Y.Z
+
+This pipeline also implements stages for pull requests testing
+hence it is strongly recommended to follow pull request practices.
+
+Pipeline follows following Artifact Promotion strategy which in
+this case is a docker tag:
+Branch Name - feature/JIRA-ID-Description or fix/JIRA-ID-Description
+  dockerTag = JIRA-ID (From branch name)
+Branch Name - PR-ID
+  dockerTag = PR-ID (From PR name)
+Branch Name - master (From branch name)
+  dockerTag = <module vesion>-<currentBuild number>-dev
+After dev test -
+  dockerTag = <module vesion>-<currentBuild number>-qa
+After QA test -
+  dockerTag = <module vesion>-<currentBuild number>-rc
+After Acceptance test -
+  dockerTag = <module vesion>-<currentBuild number>-prod
+*/
 
 pipeline {
   agent any
-	
+	environment {
+    // Define global environment variables in this section
+    buildNum = currentBuild.getNumber()
+    buildType = BRANCH_NAME.split('/').first()
+    branchVersion = BRANCH_NAME.split('/').last()
+    buildVersion = '1.0.0'
+  }
   stages {
-    stage("Compile") {
-      steps {
-        sh "./gradlew compileJava"
-      }
-    }
-	  
-    stage("Unit test") {
-      steps {
-        sh "./gradlew test"
-      }
-    }
-	
-    stage("Code coverage") {
-      steps {
-        sh "./gradlew jacocoTestReport"
-        publishHTML (target: [
-               reportDir: 'build/reports/jacoco/test/html',
-               reportFiles: 'index.html',
-               reportName: "JaCoCo Report" ])
-        sh "./gradlew jacocoTestCoverageVerification"
-      }
-    }
-
-    stage("Static code analysis") {
-      steps {
-        sh "./gradlew checkstyleMain"
-        publishHTML (target: [
-               reportDir: 'build/reports/checkstyle/',
-               reportFiles: 'main.html',
-               reportName: "Checkstyle Report" ])
-      }
-    }
-/*
-    stage('Get Git Tag') {
+    stage("Compute Docker Tag") {
       steps {
         script {
-          GIT_TAG = sh  returnStdout: true, script: '[[ $( git describe --tags $(git rev-parse HEAD) ) =~ .+-[0-9]+-g[0-9A-Fa-f]{6,}$ ]] && echo "" || git describe --tags $(git rev-parse HEAD)'
-        }
-      }
-    }
-*/  
-    stage('Compute Docker Tag') {
-      steps {
-        script {
-          buildType = BRANCH_NAME.split('/')[0] 
-          gitTagName = "v1.0.0"
-
-          if (buildType in ['develop']) {
-              // develop branch will keeps develop as tag name
-              // Should we consider latest?
-              dockerTag = "latest"
+          if (buildType in ['feature','fix']) {
+            // docker image name for feature build - component:<JIRA-ID>
+            env.dockerTag = ( env.BRANCH_NAME.split('/')[1] =~ /.+-\d+/ )[0]
+          } else if (buildType ==~ /PR-.*/ ){
+            //   This is a pull request
+            env.dockerTag = buildType
           } else if (buildType in ['master']) {
-              // Build master branch as tag. Tag must be the version number.
-              // Tag must be present.
-              dockerTag = gitTagName
-          } else if ( buildType ==~ /PR-.*/ ){
-              //   This is a pull request : do everything except push to repo
-              dockerTag = buildType
-              pullRequest = true
+            // master branch
+            env.dockerTag = env.buildVersion-env.buildNum-dev
           } else if ( buildType in ['release'] ){
-              // BRANCH_NAME : 'release/X.Y.Z' or 'release/X.Y' or 'release/X'
-              //   This is a release - either major, feature, fix
-              //   Recomended to always use X.Y.Z to make sure we build properly
-              version = ( env.BRANCH_NAME.split('/')[1] )
-              dockerTag = "${version}-rc"
-          } else {
-              // */JIRA-###-Description -> JIRA-###
-              dockerTag = ( env.BRANCH_NAME.split('/')[1] =~ /.+-\d+/ )[0]
+            // BRANCH_NAME : 'release/X.Y.Z' or 'release/X.Y' or 'release/X'
+            //   This is a release - either major, feature, fix
+            //   Recomended to always use X.Y.Z to make sure we build properly
+            env.dockerTag = env.BRANCH_NAME.split('/')[1]
           }
-          echo "Computed Docker Tag"
-          echo ""
-          echo "Docker tag: ${dockerTag}"
-          echo ""
-          echo "BRANCH NAME: ${BRANCH_NAME}"
-          // echo "GIT_TAG: ${GIT_TAG}"
         }
       }
     }
-
-    stage("Build") {
+    stage("Compile") {
+      when {
+        expression {
+          // Run only for buildTypes feature or fix or pullRequest
+          buildType ==~ /feature.*/ || /PR-.*/ || /fix.*/ || master
+        }
+      }
       steps {
-        sh "./gradlew build"
+        echo "Run Commmands to compile code"
       }
     }
-
-    stage("Docker build") {
+    stage("Unit test") {
+      when {
+        expression {
+          // Run only for buildTypes feature or fix or pullRequest
+          buildType ==~ /feature.*/ || /PR-.*/ || /fix.*/ || master
+        }
+      }
       steps {
-        sh "docker build -t artifacts.ggn.in.guavus.com:4244/calculator:${dockerTag}-${gitTagName}-${BUILD_NUMBER} ."
+        echo "Run Commmands to execute unit test"
+      }
+    }
+    stage("Code coverage") {
+      when {
+        expression {
+          // Run only for buildTypes feature or fix or pullRequest
+          buildType ==~ /feature.*/ || /PR-.*/ || /fix.*/ || master
+        }
+      }
+      steps {
+        echo "Run Commmands to execute code coverage test"
+      }
+    }
+    stage("Code Quality") {
+      when {
+        expression {
+          // Run only for buildTypes feature or fix or pullRequest
+          buildType ==~ /feature.*/ || /PR-.*/ || /fix.*/ || master
+        }
+      }
+      steps {
+        echo "Run Commmands to execute code quality test"
+      }
+    }
+    stage("Static code analysis") {
+      when {
+        expression {
+          // Run only for buildTypes feature or fix or pullRequest
+          buildType ==~ /feature.*/ || /PR-.*/ || /fix.*/ || master
+        }
+      }
+      steps {
+        echo "Run Commmands to execute static code analysis test"
+      }
+    }
+    stage("Build") {
+      when {
+        expression {
+          // Run only for buildTypes feature or fix or pullRequest
+          buildType ==~ /feature.*/ || /PR-.*/ || /fix.*/ || master
+        }
+      }
+      steps {
+        echo "Run Commmands to trigger build"
+      }
+    }
+    stage("print vars") {
+      steps {
+        echo "buildType: ${buildType}"
+        echo "BRANCH_NAME: ${BRANCH_NAME}"
+      }
+    }
+    stage('Create Docker Image') {
+      steps {
+        echo "Run Commmand to trigger docker build - module-A:${env.dockerTag}"
       }
     }
 
     stage("Docker push") {
       steps {
-        sh "docker push artifacts.ggn.in.guavus.com:4244/calculator:${dockerTag}-${gitTagName}-${BUILD_NUMBER}"
-      }
-    }
-/*
-    stage("Deploy to staging") {
-      steps {
-        sh "ansible-playbook playbook.yml -i inventory/staging"
-        sleep 60
+        echo "Run Commmand to push docker image in artifactory"
       }
     }
 
-    stage("Acceptance test") {
+    stage("Deploy and test on the feature/fix ephemeral environment") {
+      when {
+        expression {
+          // Run only for buildTypes master or Release
+          buildType ==~ /feature.*/ || /PR-.*/ || /fix.*/
+        }
+      }
       steps {
-	sh "./acceptance_test.sh 192.168.0.166"
+        // supporting components have fixed versions
+        echo "Deploy the Artifact"
+        echo "Trigger test run to verify code changes"
       }
     }
-	  
-    // Performance test stages
 
-    stage("Release") {
+    stage("Deploy and test on the dev environment") {
+      when {
+        expression {
+          // Run only for buildTypes master or Release
+          buildType in ['master','release']
+        }
+      }
       steps {
-        sh "ansible-playbook playbook.yml -i inventory/production"
-        sleep 60
+        // supporting components have fixed versions
+        echo "Deploy the Artifact"
+        echo "Trigger test run to verify integration"
       }
     }
 
-    stage("Smoke test") {
-      steps {
-	sh "./smoke_test.sh 192.168.0.115"
+    stage("Promote Artifact to QA") {
+      when {
+        expression {
+          // Run only for buildTypes master or Release
+          buildType in ['master','release']
+        }
       }
-    } */
+      steps {
+        // supporting components have fixed versions
+        echo "Promote Artifact name to module-A:<version>-<build number>-qa"
+      }
+    }
+
+    stage("Deploy and test on the QA environment") {
+      when {
+        expression {
+          // Run only for buildTypes master or Release
+          buildType in ['master','release']
+        }
+      }
+      steps {
+        // supporting components have fixed versions
+        echo "Deploy the Artifact"
+        echo "Trigger test run to verify integration testing"
+      }
+    }
+
+    stage("Promote Artifact to RC") {
+      when {
+        expression {
+          // Run only for buildTypes master or Release
+          buildType in ['master','release']
+        }
+      }
+      steps {
+        // supporting components have fixed versions
+        echo "Promote Artifact name to module-A:<version>-<build number>-rc"
+      }
+    }
+
+    stage("Deploy and test on the Pre-Prod environment") {
+      when {
+        expression {
+          // Run only for buildTypes master or Release
+          buildType in ['master','release']
+        }
+      }
+      steps {
+        // supporting components have fixed versions
+        echo "Deploy the Artifact"
+        echo "Trigger test run to verify Acceptance testing"
+      }
+    }
+
+    stage("Promote Artifact to PROD") {
+      when {
+        expression {
+          // Run only for buildTypes master or Release
+          buildType in ['master','release']
+        }
+      }
+      steps {
+        // supporting components have fixed versions
+        echo "Promote Artifact name to module-A:<version>-<build number>-prod"
+      }
+    }
   }
 }
