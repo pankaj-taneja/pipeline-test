@@ -143,10 +143,10 @@ pipeline {
       steps {
         // supporting components have fixed versions
         environment {
-          env.dockerTagStage = "qa"
-          env.dockerTag = "${env.dockerTagVersion}-${env.dockerTagStage}"
+          dockerTagStage = "qa"
+          dockerTag = "${env.dockerTagVersion}-${dockerTagStage}"
         }
-        echo "Promote Artifact name to module-A:${env.dockerTag}"
+        echo "Promote Artifact name to module-A:${dockerTag}"
       }
     }
 
@@ -174,10 +174,10 @@ pipeline {
       steps {
         // supporting components have fixed versions
         environment {
-          env.dockerTagStage = "rc"
-          env.dockerTag = "${env.dockerTagVersion}-${env.dockerTagStage}"
+          dockerTagStage = "rc"
+          dockerTag = "${env.dockerTagVersion}-${dockerTagStage}"
         }
-        echo "Promote Artifact name to module-A:${env.dockerTag}"
+        echo "Promote Artifact name to module-A:${dockerTag}"
       }
     }
 
@@ -205,10 +205,10 @@ pipeline {
       steps {
         // supporting components have fixed versions
         environment {
-          env.dockerTagStage = "prod"
-          env.dockerTag = "${env.dockerTagVersion}-${env.dockerTagStage}"
+          dockerTagStage = "prod"
+          dockerTag = "${env.dockerTagVersion}-${dockerTagStage}"
         }
-        echo "Promote Artifact name to module-A:${env.dockerTag}"
+        echo "Promote Artifact name to module-A:${dockerTag}"
       }
     }
   }
