@@ -12,7 +12,6 @@ pipeline {
   }
   stages {
     stage("Compute Docker Tag") {
-      steps {
         if (buildType in ['feature','fix']) {
           // docker image name for feature build - component:<JIRA-ID>
           env.dockerTag = ( env.BRANCH_NAME.split('/')[1] =~ /.+-\d+/ )[0]
@@ -28,7 +27,6 @@ pipeline {
           //   Recomended to always use X.Y.Z to make sure we build properly
           env.dockerTag = env.BRANCH_NAME.split('/')[1]
         }
-      }
     }
     stage("Compile") {
       when {
