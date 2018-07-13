@@ -1,10 +1,40 @@
 #!/usr/bin/env groovy
 
+/*
+This is a sample Jenkinsfile to demonstrate the list of stages
+that should be implemented for continuous integration and continuous
+deployment of a dockerized application.
+This pipeline expects following branch names in GitHub repository
+that has to be followed:
+master
+feature/JIRA-ID-Description
+fix/JIRA-ID-Description
+master
+release/X.Y.Z
+
+This pipeline also implements stages for pull requests testing
+hence it is strongly recommended to follow pull request practices.
+
+Pipeline follows following Artifact Promotion strategy which in
+this case is a docker tag:
+Branch Name - feature/JIRA-ID-Description or fix/JIRA-ID-Description
+  dockerTag = JIRA-ID (From branch name)
+Branch Name - PR-ID
+  dockerTag = PR-ID (From PR name)
+Branch Name - master (From branch name)
+  dockerTag = <module vesion>-<currentBuild number>-dev
+After dev test -
+  dockerTag = <module vesion>-<currentBuild number>-qa
+After QA test -
+  dockerTag = <module vesion>-<currentBuild number>-rc
+After Acceptance test -
+  dockerTag = <module vesion>-<currentBuild number>-prod
+*/
+
 pipeline {
   agent any
 	environment {
     // Define global environment variables in this section
-    // GIT_BRANCH = sh(returnStdout: true, script: 'git rev-parse --abbrev-ref HEAD').trim()
     buildNum = currentBuild.getNumber()
     buildType = BRANCH_NAME.split('/').first()
     branchVersion = BRANCH_NAME.split('/').last()
@@ -127,7 +157,19 @@ pipeline {
         // supporting components have fixed versions
         echo "Deploy the Artifact"
         echo "Trigger test run to verify integration"
-        echo "ReTag the artifact to module-A:<version>-<build number>-qa"
+      }
+    }
+
+    stage("Promote Artifact to QA") {
+      when {
+        expression {
+          // Run only for buildTypes master or Release
+          buildType in ['master','release']
+        }
+      }
+      steps {
+        // supporting components have fixed versions
+        echo "Promote Artifact name to module-A:<version>-<build number>-qa"
       }
     }
 
@@ -142,7 +184,19 @@ pipeline {
         // supporting components have fixed versions
         echo "Deploy the Artifact"
         echo "Trigger test run to verify integration testing"
-        echo "ReTag the artifact to module-A:<version>-<build number>-qa"
+      }
+    }
+
+    stage("Promote Artifact to RC") {
+      when {
+        expression {
+          // Run only for buildTypes master or Release
+          buildType in ['master','release']
+        }
+      }
+      steps {
+        // supporting components have fixed versions
+        echo "Promote Artifact name to module-A:<version>-<build number>-rc"
       }
     }
 
@@ -157,8 +211,20 @@ pipeline {
         // supporting components have fixed versions
         echo "Deploy the Artifact"
         echo "Trigger test run to verify Acceptance testing"
-        echo "ReTag the artifact to module-A:<version>-<build number>-qa"
+      }
+    }
+
+    stage("Promote Artifact to PROD") {
+      when {
+        expression {
+          // Run only for buildTypes master or Release
+          buildType in ['master','release']
+        }
+      }
+      steps {
+        // supporting components have fixed versions
+        echo "Promote Artifact name to module-A:<version>-<build number>-prod"
       }
     }
   }
-}  
+}
