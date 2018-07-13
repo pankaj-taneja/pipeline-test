@@ -117,7 +117,7 @@ pipeline {
     stage("Deploy on feature/fix/PR ephemeral test environments") {
       when {
         expression {
-          buildType ==~ /feature.*/ || /PR-.*/ || /fix.*/
+          env.buildType ==~ /feature.*/ || /PR-.*/ || /fix.*/
         }
       }
       steps {
@@ -131,7 +131,7 @@ pipeline {
       when {
         expression {
           // Run only for buildTypes master or Release
-          buildType in ['master','release']
+          env.buildType in ['master','release']
         }
       }
       steps {
@@ -145,7 +145,7 @@ pipeline {
       when {
         expression {
           // Run only for buildTypes master or Release
-          buildType in ['master','release']
+          env.buildType in ['master','release']
         }
       }
       environment {
@@ -161,7 +161,7 @@ pipeline {
       when {
         expression {
           // Run only for buildTypes master or Release
-          buildType in ['master','release']
+          env.buildType in ['master','release']
         }
       }
       steps {
@@ -174,7 +174,7 @@ pipeline {
       when {
         expression {
           // Run only for buildTypes master or Release
-          buildType in ['master','release']
+          env.buildType in ['master','release']
         }
       }
       environment {
@@ -191,7 +191,7 @@ pipeline {
       when {
         expression {
           // Run only for buildTypes master or Release
-          buildType in ['master','release']
+          env.buildType in ['master','release']
         }
       }
       steps {
@@ -205,7 +205,7 @@ pipeline {
       when {
         expression {
           // Run only for buildTypes master or Release
-          buildType in ['master','release']
+          env.buildType in ['master','release']
         }
       }
       environment {
