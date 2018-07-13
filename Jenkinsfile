@@ -57,7 +57,7 @@ pipeline {
             // BRANCH_NAME : 'release/X.Y.Z' or 'release/X.Y' or 'release/X'
             //   This is a release - either major, feature, fix
             //   Recomended to always use X.Y.Z to make sure we build properly
-            env.dockerTag = env.BRANCH_NAME.split('/')[1]
+            env.dockerTag = "env.BRANCH_NAME.split('/')[1]-${env.buildNum}-dev"
           }
         }
       }
