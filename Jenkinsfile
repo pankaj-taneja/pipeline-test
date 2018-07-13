@@ -12,22 +12,27 @@ pipeline {
   }
   stages {
     stage("Compute Docker Tag") {
-        if (buildType in ['feature','fix']) {
-          // docker image name for feature build - component:<JIRA-ID>
-          env.dockerTag = ( env.BRANCH_NAME.split('/')[1] =~ /.+-\d+/ )[0]
-        } else if (buildType ==~ /PR-.*/ ){
-          //   This is a pull request
-          env.dockerTag = buildType
-        } else if (buildType in ['master']) {
-          // master branch
-          env.dockerTag = env.buildVersion-env.buildNum-dev
-        } else if ( buildType in ['release'] ){
-          // BRANCH_NAME : 'release/X.Y.Z' or 'release/X.Y' or 'release/X'
-          //   This is a release - either major, feature, fix
-          //   Recomended to always use X.Y.Z to make sure we build properly
-          env.dockerTag = env.BRANCH_NAME.split('/')[1]
+      steps {
+        script {
+          if (buildType in ['feature','fix']) {
+            // docker image name for feature build - component:<JIRA-ID>
+            env.dockerTag = ( env.BRANCH_NAME.split('/')[1] =~ /.+-\d+/ )[0]
+          } else if (buildType ==~ /PR-.*/ ){
+            //   This is a pull request
+            env.dockerTag = buildType
+          } else if (buildType in ['master']) {
+            // master branch
+            env.dockerTag = env.buildVersion-env.buildNum-dev
+          } else if ( buildType in ['release'] ){
+            // BRANCH_NAME : 'release/X.Y.Z' or 'release/X.Y' or 'release/X'
+            //   This is a release - either major, feature, fix
+            //   Recomended to always use X.Y.Z to make sure we build properly
+            env.dockerTag = env.BRANCH_NAME.split('/')[1]
+          }
         }
+      }
     }
+  }    
     stage("Compile") {
       when {
         expression {
