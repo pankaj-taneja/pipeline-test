@@ -140,12 +140,12 @@ pipeline {
           buildType in ['master','release']
         }
       }
+      environment {
+        dockerTagStage = "qa"
+        dockerTag = "${env.dockerTagVersion}-${dockerTagStage}"
+      }
       steps {
         // supporting components have fixed versions
-        environment {
-          dockerTagStage = "qa"
-          dockerTag = "${env.dockerTagVersion}-${dockerTagStage}"
-        }
         echo "Promote Artifact name to module-A:${dockerTag}"
       }
     }
@@ -171,12 +171,12 @@ pipeline {
           buildType in ['master','release']
         }
       }
+      environment {
+        dockerTagStage = "rc"
+        dockerTag = "${env.dockerTagVersion}-${dockerTagStage}"
+      }
       steps {
         // supporting components have fixed versions
-        environment {
-          dockerTagStage = "rc"
-          dockerTag = "${env.dockerTagVersion}-${dockerTagStage}"
-        }
         echo "Promote Artifact name to module-A:${dockerTag}"
       }
     }
@@ -202,12 +202,12 @@ pipeline {
           buildType in ['master','release']
         }
       }
+      environment {
+        dockerTagStage = "prod"
+        dockerTag = "${env.dockerTagVersion}-${dockerTagStage}"
+      }
       steps {
         // supporting components have fixed versions
-        environment {
-          dockerTagStage = "prod"
-          dockerTag = "${env.dockerTagVersion}-${dockerTagStage}"
-        }
         echo "Promote Artifact name to module-A:${dockerTag}"
       }
     }
