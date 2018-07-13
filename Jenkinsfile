@@ -32,7 +32,6 @@ pipeline {
         }
       }
     }
-  }
     stage("Compile") {
       when {
         expression {
