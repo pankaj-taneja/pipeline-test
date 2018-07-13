@@ -160,4 +160,5 @@ pipeline {
         echo "ReTag the artifact to module-A:<version>-<build number>-qa"
       }
     }
-}
+  }
+}  
