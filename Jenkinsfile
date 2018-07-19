@@ -73,29 +73,33 @@ pipeline {
         }
       }
     }
-    stage("Compile") {
-      steps {
-        echo "Run Commmands to compile code"
-      }
-    }
-    stage("Unit test") {
-      steps {
-        echo "Run Commmands to execute unit test"
-      }
-    }
-    stage("Code coverage") {
-      steps {
-        echo "Run Commmands to execute code coverage test"
-      }
-    }
-    stage("Code Quality") {
-      steps {
-        echo "Run Commmands to execute code quality test"
-      }
-    }
-    stage("Static code analysis") {
-      steps {
-        echo "Run Commmands to execute static code analysis test"
+    stage("Build and test") {
+      parallel {
+        stage("Compile") {
+          steps {
+            echo "Run Commmands to compile code"
+          }
+        }
+        stage("Unit test") {
+          steps {
+            echo "Run Commmands to execute unit test"
+          }
+        }
+        stage("Code coverage") {
+          steps {
+            echo "Run Commmands to execute code coverage test"
+          }
+        }
+        stage("Code Quality") {
+          steps {
+            echo "Run Commmands to execute code quality test"
+          }
+        }
+        stage("Static code analysis") {
+          steps {
+            echo "Run Commmands to execute static code analysis test"
+          }
+        }
       }
     }
     stage("Build") {
