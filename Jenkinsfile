@@ -117,8 +117,7 @@ pipeline {
     stage("Push docker images in artifactory") {
       steps {
         echo "Run Commmand to push docker image in artifactory"
-        sh  "curl --user dev-deployer:dev@guavus -X PUT 'artifacts.ggn.in.guavus.com:/ggn-dev-rpms/gvs-accelerators/cdap-plugins/master/
-/${env.rpmRelease}/' -T ./sample.rpm"
+        sh  "curl --user dev-deployer:dev@guavus -X PUT 'artifacts.ggn.in.guavus.com:/ggn-dev-rpms/gvs-accelerators/cdap-plugins/master/${env.rpmRelease}/' -T ./sample.rpm"
 
       }
     }
