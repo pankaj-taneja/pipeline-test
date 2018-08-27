@@ -3,7 +3,7 @@
 /*
 This is a sample Jenkinsfile to demonstrate the list of stages
 that should be implemented for continuous integration and continuous
-deployment of a dockerized application.
+deployment of a RPM artifact.
 This pipeline expects following branch names in GitHub repository
 that has to be followed:
 master
@@ -17,19 +17,19 @@ Which is: Nothing can be merged into master or release branch without
 creating a pull request.
 
 Pipeline follows following Artifact versioning strategy which in
-this case is a docker tag promotion:
+this case is a RPM package promotion to different repos in artifactory:
 If Branch Name is feature/JIRA-ID-Description or fix/JIRA-ID-Description
-  then, dockerTag = JIRA-ID (From branch name, ephemeral Artifact)
+  then, RPMVersion = JIRA-ID (From branch name, ephemeral Artifact) which is to
+  be pushed in application-repo-name/ephemeral repo.
 If Branch Name is PR-ID
-  then, dockerTag = PR-ID (From PR name, ephemeral Artifact)
+  then, RPMVersion = PR-ID (From PR name, ephemeral Artifact) which is to
+  be pushed in application-repo-name/ephemeral repo.
 If Branch Name is master or release,
-  then, dockerTag = <module vesion>-<currentBuild number>-dev
-After dev test, dev tag prmotes to qa, such as:
-    dockerTag = <module vesion>-<currentBuild number>-qa
-After QA test, qa tag promotes to rc, such as:
-    dockerTag = <module vesion>-<currentBuild number>-rc
-After Acceptance test, rc tag prmotes to prod -
-    dockerTag = <module vesion>-<currentBuild number>-prod
+  then, RPMVersion = <module vesion>-<currentBuild number> which is to be
+  pushed in application-repo-name/dev repo.
+After dev test, same rpm to be copied to application-repo-name/qa repo.
+After QA test, same rpm to be copied to application-repo-name/rc repo.
+After Acceptance test, same rpm to be copied to application-repo-name/prod repo.
 
 * Ephemeral artifacts created with feature or fix Branches
  and with pull should get deleted after closure of the
@@ -55,20 +55,20 @@ pipeline {
         script {
           if (buildType in ['feature','fix']) {
             // docker tag for a feature or fix branch
-            env.dockerTag = ( env.BRANCH_NAME.split('/')[1] =~ /.+-\d+/ )[0]
+            env.rpmRelease = ( env.BRANCH_NAME.split('/')[1] =~ /.+-\d+/ )[0]
           } else if (buildType ==~ /PR-.*/ ){
             // docker tag for a pull request
-            env.dockerTag = buildType
+            env.rpmRelease = buildType
           } else if (buildType in ['master']) {
             // docker tag for a master branch
-            env.dockerTagVersion = "${env.buildVersion}-${env.buildNum}"
-            env.dockerTagStage = "dev"
-            env.dockerTag = "${env.dockerTagVersion}-${env.dockerTagStage}"
+            env.rpmReleaseVersion = "${env.buildVersion}-${env.buildNum}"
+            env.rpmReleaseStage = "dev"
+            env.rpmRelease = "${env.rpmReleaseVersion}-${env.rpmReleaseStage}"
           } else if ( buildType in ['release'] ){
             // docker tag for a release branch
-            env.dockerTagVersion = "${env.branchVersion}-${env.buildNum}"
-            env.dockerTagStage = "dev"
-            env.dockerTag = "${env.dockerTagVersion}-${env.dockerTagStage}"
+            env.rpmReleaseVersion = "${env.branchVersion}-${env.buildNum}"
+            env.rpmReleaseStage = "dev"
+            env.rpmRelease = "${env.rpmReleaseVersion}-${env.rpmReleaseStage}"
           }
         }
       }
@@ -78,6 +78,7 @@ pipeline {
         stage("Compile") {
           steps {
             echo "Run Commmands to compile code"
+            sh "touch sample.rpm"
           }
         }
         stage("Unit test") {
@@ -109,13 +110,16 @@ pipeline {
     }
     stage('Create Docker Image') {
       steps {
-        echo "Run Commmand to trigger docker build - module-A:${env.dockerTag}"
+        echo "Run Commmand to trigger docker build - module-A:${env.rpmRelease}"
       }
     }
 
     stage("Push docker images in artifactory") {
       steps {
         echo "Run Commmand to push docker image in artifactory"
+        sh  "curl --user dev-deployer:dev@guavus -X PUT 'artifacts.ggn.in.guavus.com:/ggn-dev-rpms/gvs-accelerators/cdap-plugins/master/
+/${env.rpmRelease}/' -T ./sample.rpm"
+
       }
     }
 
@@ -154,11 +158,11 @@ pipeline {
         }
       }
       environment {
-        dockerTagStage = "qa"
-        dockerTag = "${env.dockerTagVersion}-${dockerTagStage}"
+        rpmReleaseStage = "qa"
+        rpmRelease = "${env.rpmReleaseVersion}-${rpmReleaseStage}"
       }
       steps {
-        echo "Promote Artifact name to module-A:${dockerTag} in artifactory"
+        echo "Promote Artifact name to module-A:${rpmRelease} in artifactory"
       }
     }
 
@@ -183,12 +187,12 @@ pipeline {
         }
       }
       environment {
-        dockerTagStage = "rc"
-        dockerTag = "${env.dockerTagVersion}-${dockerTagStage}"
+        rpmReleaseStage = "rc"
+        rpmRelease = "${env.rpmReleaseVersion}-${rpmReleaseStage}"
       }
       steps {
         // supporting components have fixed versions
-        echo "Promote Artifact name to module-A:${dockerTag}"
+        echo "Promote Artifact name to module-A:${rpmRelease}"
       }
     }
 
@@ -214,12 +218,12 @@ pipeline {
         }
       }
       environment {
-        dockerTagStage = "prod"
-        dockerTag = "${env.dockerTagVersion}-${dockerTagStage}"
+        rpmReleaseStage = "prod"
+        rpmRelease = "${env.rpmReleaseVersion}-${rpmReleaseStage}"
       }
       steps {
         // supporting components have fixed versions
-        echo "Promote Artifact name to module-A:${dockerTag}"
+        echo "Promote Artifact name to module-A:${rpmRelease}"
       }
     }
   }

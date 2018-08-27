@@ -3,7 +3,7 @@
 /*
 This is a sample Jenkinsfile to demonstrate the list of stages
 that should be implemented for continuous integration and continuous
-deployment of a RPM artifact.
+deployment of a dockerized application.
 This pipeline expects following branch names in GitHub repository
 that has to be followed:
 master
@@ -17,19 +17,19 @@ Which is: Nothing can be merged into master or release branch without
 creating a pull request.
 
 Pipeline follows following Artifact versioning strategy which in
-this case is a RPM package promotion to different repos in artifactory:
+this case is a docker tag promotion:
 If Branch Name is feature/JIRA-ID-Description or fix/JIRA-ID-Description
-  then, RPMVersion = JIRA-ID (From branch name, ephemeral Artifact) which is to
-  be pushed in application-repo-name/ephemeral repo.
+  then, dockerTag = JIRA-ID (From branch name, ephemeral Artifact)
 If Branch Name is PR-ID
-  then, RPMVersion = PR-ID (From PR name, ephemeral Artifact) which is to
-  be pushed in application-repo-name/ephemeral repo.
+  then, dockerTag = PR-ID (From PR name, ephemeral Artifact)
 If Branch Name is master or release,
-  then, RPMVersion = <module vesion>-<currentBuild number> which is to be
-  pushed in application-repo-name/dev repo.
-After dev test, same rpm to be copied to application-repo-name/qa repo.
-After QA test, same rpm to be copied to application-repo-name/rc repo.
-After Acceptance test, same rpm to be copied to application-repo-name/prod repo.
+  then, dockerTag = <module vesion>-<currentBuild number>-dev
+After dev test, dev tag prmotes to qa, such as:
+    dockerTag = <module vesion>-<currentBuild number>-qa
+After QA test, qa tag promotes to rc, such as:
+    dockerTag = <module vesion>-<currentBuild number>-rc
+After Acceptance test, rc tag prmotes to prod -
+    dockerTag = <module vesion>-<currentBuild number>-prod
 
 * Ephemeral artifacts created with feature or fix Branches
  and with pull should get deleted after closure of the
