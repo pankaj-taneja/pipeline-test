@@ -117,7 +117,6 @@ pipeline {
     stage("Push docker images in artifactory") {
       steps {
         echo "Run Commmand to push docker image in artifactory"
-        sh  "curl --user dev-deployer:dev@guavus -X PUT 'artifacts.ggn.in.guavus.com:/ggn-dev-rpms/gvs-accelerators/cdap-plugins/master/${env.rpmRelease}/' -T ./sample.rpm"
 
       }
     }
@@ -135,7 +134,7 @@ pipeline {
       }
     }
 
-    stage("Deploy and test on the dev environment") {
+    stage("Deploy on artifactory for them if master or release") {
       when {
         expression {
           // Run only for buildTypes master or Release
@@ -146,6 +145,7 @@ pipeline {
         // supporting components have fixed versions
         echo "Deploy the Artifact on dev setup"
         echo "Trigger integration test run with fixed versions"
+        sh  "curl --user dev-deployer:dev@guavus -X PUT 'artifacts.ggn.in.guavus.com:/ggn-dev-rpms/gvs-accelerators/cdap-plugins/master/${env.rpmRelease}/' -T ./sample.rpm"
       }
     }
 
